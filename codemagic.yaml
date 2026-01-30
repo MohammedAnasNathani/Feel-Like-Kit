@@ -1,0 +1,28 @@
+workflows:
+  release-workflow:
+    name: Release Build (Android & iOS)
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install pods
+        script: find . -name "Podfile" -exec cd "$(dirname "{}")" \; -exec pod install \;
+      - name: Build Android APK
+        script: flutter build apk --release
+      - name: Build iOS IPA
+        # Note: You MUST enable "Automatic Code Signing" in CodeMagic UI (App Settings > Code signing)
+        # and connect your Apple Developer Account for this step to succeed.
+        script: | 
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+      - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - user_email@example.com
