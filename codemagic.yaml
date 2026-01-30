@@ -18,7 +18,7 @@ workflows:
         # and connect your Apple Developer Account for this step to succeed.
         script: | 
           flutter build ipa --release \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=ios/export_options.plist
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
       - build/ios/ipa/*.ipa
