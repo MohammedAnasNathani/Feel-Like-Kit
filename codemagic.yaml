@@ -13,9 +13,12 @@ workflows:
         script: find . -name "Podfile" -exec cd "$(dirname "{}")" \; -exec pod install \;
       - name: Build Android APK
         script: flutter build apk --release
+      - name: iOS Code Signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.bryan.feellikekit" --type IOS_APP_STORE --create
+          xcode-project use-profiles
       - name: Build iOS IPA
-        # Note: You MUST enable "Automatic Code Signing" in CodeMagic UI (App Settings > Code signing)
-        # and connect your Apple Developer Account for this step to succeed.
         script: | 
           flutter build ipa --release \
             --export-options-plist=ios/export_options.plist
