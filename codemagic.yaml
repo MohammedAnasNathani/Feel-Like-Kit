@@ -6,6 +6,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      groups:
+        - release-workflow
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
@@ -21,7 +23,8 @@ workflows:
       - name: Build iOS IPA
         script: | 
           flutter build ipa --release \
-            --export-options-plist=ios/export_options.plist
+            --export-options-plist=ios/export_options.plist \
+            --build-number=$(($BUILD_NUMBER + 100))
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
       - build/ios/ipa/*.ipa
