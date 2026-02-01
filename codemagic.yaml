@@ -2,29 +2,44 @@ workflows:
   release-workflow:
     name: Release Build (Android & iOS)
     max_build_duration: 60
+    integrations:
+      app_store_connect: FeelLikeKit
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.bryan.feellikekit
       flutter: stable
       xcode: latest
       cocoapods: default
-      groups:
-        - release-workflow
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
       - name: Install pods
-        script: find . -name "Podfile" -exec cd "$(dirname "{}")" \; -exec pod install \;
+        script: |
+          cd ios
+          pod install
       - name: Build Android APK
         script: flutter build apk --release
-      - name: iOS Code Signing
+      - name: Set up keychain
+        script: keychain initialize
+      - name: Fetch signing files
         script: |
-          keychain initialize
-          app-store-connect fetch-signing-files "com.bryan.feellikekit" --type IOS_APP_STORE --create
-          xcode-project use-profiles
+          app-store-connect fetch-signing-files "com.bryan.feellikekit" \
+            --type IOS_APP_STORE \
+            --create
+      - name: Set up code signing settings
+        script: xcode-project use-profiles
       - name: Build iOS IPA
-        script: | 
-          flutter build ipa --release \
-            --export-options-plist=ios/export_options.plist \
-            --build-number=$(($BUILD_NUMBER + 100))
+        script: |
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/Runner.xcarchive \
+            archive
+          xcodebuild -exportArchive \
+            -archivePath build/ios/Runner.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist /Users/builder/export_options.plist
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
       - build/ios/ipa/*.ipa
